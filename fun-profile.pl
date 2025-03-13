@@ -103,7 +103,7 @@ sub date_difference_md {
     $minutes = $hours * 60;
 }
 
-# Determine the Zodiac sign
+# Deterñmine the Zodiac sign
 sub get_star_sign {
     my ($d, $m) = @_;
     my @zodiac_signs = (
@@ -185,7 +185,7 @@ print <<__END_OF_HTML_CODE__;
 </head>
 <body>
   <div class="container">
-    <img src="fun-profile3.jpg" alt="Fun Profile Logo">
+    <img src="fun-profile.jpg" alt="Fun Profile Logo">
     <h2>Fun Profile Results</h2>
     <p><strong>Name:</strong> $name</p>
     <p><strong>Email:</strong> $email</p>
