@@ -20,7 +20,7 @@ This includes:
 - Proper validation ensures correct inputs.
 
 ## Requirements
-- Perl with `CGI.pm` and `DateTime` module installed.
+- Perl with `CGI.pm`, `DateTime` & Email::Valid modules installed.
 - A web server with CGI execution enabled.
 
 How to install perl modules:
@@ -30,14 +30,16 @@ How to install perl modules:
    perl -MCPAN -e shell
    install DateTime
    install CGI
+   install Email::Valid
    exit
 
 Test the module in Perl:
 
    perl -e 'use DateTime; print "DateTime module installed successfully\n";'
    
-   perl -e 'use CGI; print "DateTime module installed successfully\n";'
+   perl -e 'use CGI; print "CGI module installed successfully\n";'
 
+   perl -e 'use CGI; print "Email::Valid module installed successfully\n";'   
 
 ## Usage
 1. Upload `index.html` and `fun-profile.pl` to your server.
