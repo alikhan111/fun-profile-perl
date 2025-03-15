@@ -182,8 +182,6 @@ sub get_page {
     <p><strong>Months:</strong> $months</p>
     <p><strong>Weeks:</strong> $weeks</p>
     <p><strong>Days:</strong> $days</p>
-    <p><strong>Hours:</strong> $hours</p>
-    <p><strong>Minutes:</strong> $minutes</p>
   </div>
 </body>
 </html>
