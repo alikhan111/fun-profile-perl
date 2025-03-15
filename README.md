@@ -17,6 +17,7 @@ This includes:
 ## How It Works
 - The user fills out a form (`index.html`).
 - The Perl script (`fun-profile.pl`) processes the input and generates a response page.
+- Make sure the Perl script is placed within the cgi-bin folder. 
 - Proper validation ensures correct inputs.
 
 ## Requirements
