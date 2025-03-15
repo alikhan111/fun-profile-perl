@@ -1,67 +1,75 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl
 use strict;
 use warnings;
 use CGI qw(:standard);
 use CGI::Carp qw(fatalsToBrowser);
-use Time::Piece;
 use DateTime;
-use HTTP::Tiny;
-use JSON;
 use Email::Valid;
 
 ##################################
 # Perl Script Created By Ali Khan
 ##################################
 
-# User Input Variables
+# Declare global variables
 my ($name, $email, $day, $month, $year);
 my ($years, $months, $weeks, $days, $hours, $minutes);
 my ($generation, $starsign);
-my $dob;
-my $current_date;
-my $start_date;
-my $days_difference;
+my ($dob, $current_date, $start_date);
 
-# Run the script
-&collect_data();
-&validate_input();
-&date_objects();
-#&date_difference_delta();
-&date_difference_md();
+# Collect user input and validate
+collect_data();
+validate_input();
+
+# Check if valid before proceeding
+if (!$year || !$month || !$day) {
+    error_page("Missing or invalid date input. Please enter a valid date.");
+}
+
+# Generate DateTime objects
+($start_date, $current_date) = date_objects($year, $month, $day);
+
+# Calculate age
+($years, $months, $weeks, $days, $hours, $minutes) = date_difference_delta($start_date, $current_date);
+
+# Get additional information
 $starsign   = get_star_sign($day, $month);
 $generation = get_generation($year);
 
 # Print results page
-&html_head();
-&get_page();
-&html_exit();
+html_head();
+get_page();
+html_exit();
 
-# Collect user data
-sub collect_data 
-{
+# Collect user data safely
+sub collect_data {
     my $cgi = CGI->new;
     
-    # Data entry from user
-    $name    = $cgi->param("name");
-    $email   = $cgi->param("email");
-    $day     = $cgi->param("day");
-    $month   = $cgi->param("month");
-    $year    = $cgi->param("year");
+    # Get input values from user form
+    $name  = $cgi->param("name")  || "";
+    $email = $cgi->param("email") || "";
+    $day   = $cgi->param("day")   || "";
+    $month = $cgi->param("month") || "";
+    $year  = $cgi->param("year")  || "";
+
+    # Remove spaces and ensure values are numeric
+    $day   =~ s/\D//g;
+    $month =~ s/\D//g;
+    $year  =~ s/\D//g;
 
     $dob = "$day-$month-$year";
-    return;
 }
 
-# Validate_input email & date
+# Validate email and date
 sub validate_input {
-    unless (Email::Valid->address($email)) {
-        &error_page("Invalid email address! Please enter a correct email.");
+    unless ($email && Email::Valid->address($email)) {
+        error_page("Invalid email address! Please enter a correct email.");
     }
     unless (check_date_validity($day, $month, $year)) {
-        &error_page("Invalid Date of Birth! Please enter a valid date.");
+        error_page("Invalid Date of Birth! Please enter a valid date: $day-$month-$year");
     }
 }
 
+# Show error message and exit
 sub error_page {
     my ($message) = @_;
     print "Content-type: text/html\n\n";
@@ -69,41 +77,46 @@ sub error_page {
     exit;
 }
 
-# Check date validity
+# Check if date is valid
 sub check_date_validity {
     my ($d, $m, $y) = @_;
+    return 0 unless ($y && $m && $d);  # Ensure values exist
     eval { DateTime->new(year => $y, month => $m, day => $d) };
     return $@ ? 0 : 1;
 }
 
-# Create DateTime objects
+# Create DateTime objects safely
 sub date_objects {
-    $start_date = DateTime->new(year => $year, month => $month, day => $day);
-    $current_date = DateTime->now;
-    return;
+    my ($year, $month, $day) = @_;
+
+    my $start_date   = DateTime->new(year => $year, month => $month, day => $day);
+    my $current_date = DateTime->now;
+
+    return ($start_date, $current_date);
 }
 
+# Calculate date difference correctly
 sub date_difference_delta {
+    my ($start_date, $current_date) = @_;
+
     my $duration = $current_date->delta_days($start_date)->in_units('days');
-    $years = int($duration / 365);
-    $months = int(($duration % 365) / 30);
-    $weeks = int($duration / 7);
-    $days = $duration % 7;
-    $hours = $duration * 24;
-    $minutes = $hours * 60;
+
+    my $years   = int($duration / 365);
+    my $remaining_days = $duration % 365;
+
+    my $months  = int($remaining_days / 30);
+    $remaining_days %= 30;
+
+    my $weeks   = int($remaining_days / 7);
+    my $days    = $remaining_days % 7;
+
+    my $hours   = $duration * 24;
+    my $minutes = $hours * 60;
+
+    return ($years, $months, $weeks, $days, $hours, $minutes);
 }
 
-# Calculate age in years, months, weeks, days, hours, minutes  
-sub date_difference_md {
-    my $duration = $current_date->delta_md($start_date);
-    $years = $duration->in_units('years');
-    $months = $duration->in_units('months') % 12;
-    $days = $duration->in_units('days') % 30;
-    $hours = ($years * 365 + $months * 30 + $days) * 24;
-    $minutes = $hours * 60;
-}
-
-# Deterñmine the Zodiac sign
+# Determine Zodiac sign
 sub get_star_sign {
     my ($d, $m) = @_;
     my @zodiac_signs = (
@@ -121,7 +134,7 @@ sub get_star_sign {
     return "Unknown";
 }
 
-# Determine the Generation
+# Determine Generation
 sub get_generation {
     my ($y) = @_;
     return "The Greatest Generation (1901-1924)" if $y >= 1901 && $y <= 1924;
@@ -134,74 +147,45 @@ sub get_generation {
     return "Unknown Generation";
 }
 
-sub html_head
-{
-	print "Content-type: text/html\n\n";
+# HTML Headers
+sub html_head {
+    print "Content-type: text/html\n\n";
 }
 
-sub html_exit
-{
-	exit(0);
+sub html_exit {
+    exit(0);
 }
 
-sub get_page
-{
-
-print <<__END_OF_HTML_CODE__;
-
+# Generate Result Page
+sub get_page {
+    print <<__END_OF_HTML_CODE__;
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fun Profile</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 80vh;
-      margin: 0;
-      background-color: #f4f4f4;
-    }
-    
-    .container {
-      width: 80%;
-      max-width: 430px;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      padding: 30px;
-    }
-    
-    .container img {
-      display: block;
-      margin: 0 auto 20px;
-      width: 100px;
-      height: 80px;
-    }
+    body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; }
+    .container { width: 50%; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
   </style>
 </head>
 <body>
   <div class="container">
-    <img src="fun-profile.jpg" alt="Fun Profile Logo">
     <h2>Fun Profile Results</h2>
     <p><strong>Name:</strong> $name</p>
     <p><strong>Email:</strong> $email</p>
     <p><strong>Date of Birth:</strong> $dob</p>
     <p><strong>Zodiac Sign:</strong> $starsign</p>
     <p><strong>Generation:</strong> $generation</p>
-    <p><strong>Age in Years:</strong> $years</p>
-    <p><strong>Age in Months:</strong> $months</p>
-    <p><strong>Age in Weeks:</strong> $weeks</p>
-    <p><strong>Age in Days:</strong> $days</p>
-    <p><strong>Age in Hours:</strong> $hours</p>
-    <p><strong>Age in Minutes:</strong> $minutes</p>
+    <p><strong>Your Age is</p>    
+    <p><strong>Years:</strong> $years</p>
+    <p><strong>Months:</strong> $months</p>
+    <p><strong>Weeks:</strong> $weeks</p>
+    <p><strong>Days:</strong> $days</p>
+    <p><strong>Hours:</strong> $hours</p>
+    <p><strong>Minutes:</strong> $minutes</p>
   </div>
 </body>
 </html>
-
 __END_OF_HTML_CODE__
-
 }
