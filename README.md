@@ -35,6 +35,7 @@ How to install perl modules:
 Test the module in Perl:
 
    perl -e 'use DateTime; print "DateTime module installed successfully\n";'
+   
    perl -e 'use CGI; print "DateTime module installed successfully\n";'
 
 
